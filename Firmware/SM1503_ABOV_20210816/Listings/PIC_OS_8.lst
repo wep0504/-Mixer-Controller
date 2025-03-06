@@ -1,0 +1,192 @@
+C51 COMPILER V9.60.0.0   PIC_OS_8                                                          08/16/2021 18:48:40 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE PIC_OS_8
+OBJECT MODULE PLACED IN .\Objects\PIC_OS_8.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE PIC_OS_8.C OPTIMIZE(8,SPEED) BROWSE INCDIR(..\SM1503_ABOV_S) DEBUG OBJEC
+                    -TEXTEND PRINT(.\Listings\PIC_OS_8.lst) OBJECT(.\Objects\PIC_OS_8.obj)
+
+line level    source
+
+   1          /////////////////////////////////////////////////////////
+   2          //  Real Time OS for PIC16F87x & PIC18 family
+   3          //  Support Service Macro
+   4          //    Request_Task , Exit_Task
+   5          //    Trigger_Task ,
+   6          //    Suspend_Task , Resume_Task
+   7          //    Wait_Timer   , Get_Trigger
+   8          ///////////////////////////////////////////////////////
+   9          #include "PIC_OS.h"
+  10          
+  11          ///////// System Global Variables ////////////
+  12          uint8_t Current_Task;
+  13          volatile bit Timer_Flag;
+  14          
+  15          uint8_t TCB[2*task_number+2];
+  16          
+  17          void OS_Task_Init(void)
+  18          {
+  19   1          uint8_t i;
+  20   1          for(i=1; i<= task_number; i++)
+  21   1              {
+  22   2                      TCB[2*i] = 0;
+  23   2                      TCB[2*i+1] = 0;
+  24   2              }
+  25   1      }
+  26          
+  27          //////////// Request Task Service Macro ////
+  28          void OS_Request_Task(uint8_t taskid)
+  29          {
+  30   1              di();
+  31   1              if((TCB[2*taskid]&0x80) == 0)                                   //already Ready or Wait
+  32   1              {
+  33   2              TCB[2*taskid] = TCB[2*taskid] | 0x80;   //Ready bit On
+  34   2              }
+  35   1              ei();
+  36   1      }
+  37          
+  38          //////////// Trigger Task Service Macro ////
+  39          void OS_Trigger_Task(uint8_t taskid)
+  40          {
+  41   1              di();
+  42   1              if((TCB[2*taskid]&0x80) == 0)                                   //already Ready or Wait
+  43   1              {
+  44   2                      TCB[2*taskid] = TCB[2*taskid] | 0x80;   //Ready bit On
+  45   2              }
+  46   1          //只能在中断中使用
+  47   1      }
+  48          
+  49          /////////// Exit Task Service Macro ////
+  50          void OS_Exit_Task(void)
+  51          {
+  52   1              di();   
+  53   1              TCB[2*Current_Task] = 0;                                //Set dormant
+  54   1              TCB[2*Current_Task+1] = 0;                              //clear parameter
+C51 COMPILER V9.60.0.0   PIC_OS_8                                                          08/16/2021 18:48:40 PAGE 2   
+
+  55   1          ei();
+  56   1      }
+  57          
+  58          ////////// Suspend Service Macro ////////
+  59          /*void OS_Suspend_Task(uint8_t taskid)
+  60          {
+  61                  di();
+  62                  if((TCB[2*Current_Task] & 0x40) == 0x00)        //already wait timer
+  63                  {
+  64                  TCB[2*Current_Task] = (TCB[2*Current_Task] & 0x80) | 0x40;
+  65                  TCB[2*Current_Task+1] = taskid;
+  66              }
+  67              ei();
+  68          }
+  69          
+  70          //////// Resume Service Macro ///////
+  71          void OS_Resume_Task(void)
+  72          {
+  73                  int i;
+  74          
+  75                  di();                                           //not exist check flag
+  76                  i = 0;
+  77                  while(i <= task_number)
+  78                  {
+  79                          ///// Check wait and match task number  /////
+  80                          if((TCB[2*i] & 0x40) && (TCB[2*i+1] == Current_Task))
+  81                          {                       
+  82                                  //TCB[2*i] = (TCB[2*i] & 0xA0) + 1;     //wake up and trigger flag set
+  83                      TCB[2*i] = TCB[2*i] & 0xA0; 
+  84                      TCB[2*i+1] = 0;
+  85                                  break;
+  86                          }
+  87                  else
+  88                                  i++;                                                    //next task
+  89                  }
+  90                  ei();
+  91          }
+  92          
+  93          //////// Get Event Service Macro ///////
+  94          uint8_t OS_Get_Event(uint8_t *Data)
+  95          {
+  96              uint8_t Event = 0;
+  97              
+  98                  di();
+  99                  if (TCB[2*Current_Task] & 0x10)
+ 100                  {
+ 101                          TCB[2*Current_Task] = TCB[2*Current_Task] & 0xe0;
+ 102                  Event = 1;
+ 103                  *Data = TCB[2*Current_Task+1];
+ 104                  TCB[2*Current_Task+1] = 0;
+ 105                  }
+ 106                  ei();
+ 107              return Event;
+ 108          }
+ 109          
+ 110          ///// Send Event Service Macro ///////
+ 111          void OS_Send_Event(uint8_t taskid,uint8_t Data)
+ 112          {
+ 113              di();
+ 114              if((TCB[2*taskid] & 0x40) == 0)
+ 115              {
+ 116                  TCB[2*taskid] = (TCB[2*taskid]&0x80)|0x10;
+C51 COMPILER V9.60.0.0   PIC_OS_8                                                          08/16/2021 18:48:40 PAGE 3   
+
+ 117                  TCB[2*taskid+1] = Data;
+ 118              }
+ 119              ei();
+ 120          }
+ 121          
+ 122          
+ 123          ///////// Get Trigger Condition Service Macro ////////
+ 124          uint8_t OS_Get_Trigger(void)
+ 125          {
+ 126                  return(TCB[2*Current_Task] & 0x0f);             //Trigger flag
+ 127          }
+ 128          */
+ 129          
+ 130          //////// Wait Timer Service Macro /////
+ 131          void OS_Wait_Timer(uint8_t time)
+ 132          {
+ 133   1              di();
+ 134   1              if ((TCB[2*Current_Task] & 0x50) == 0)
+ 135   1              {
+ 136   2              TCB[2*Current_Task] = (TCB[2*Current_Task] & 0xd0) | 0x20;
+ 137   2              TCB[2*Current_Task+1] = time;
+ 138   2              Timer_Flag = 1;
+ 139   2          }
+ 140   1              ei();
+ 141   1      }
+ 142          
+ 143          ////////// Timer update 需要放入节拍器中////////
+ 144          void OS_Timer_Update(void)
+ 145          {
+ 146   1          uint8_t i;
+ 147   1          
+ 148   1              if (Timer_Flag != 0)                                            //no timer wait task
+ 149   1              {
+ 150   2                      Timer_Flag = 0;                                                 //reset wait flag
+ 151   2                      for (i=1; i<=task_number; i++)
+ 152   2                      {
+ 153   3                              if(TCB[2*i] & 0x20)                                     //duling timer wait
+ 154   3                              {
+ 155   4                                      TCB[2*i+1] = TCB[2*i+1] - 1;    //wait counter -1
+ 156   4                                      if (TCB[2*i+1] == 0)                    //if time up,set ready
+ 157   4                                              //TCB[2*i] = (TCB[2*i] & 0xDD) +2;      //set trigger flag
+ 158   4                          TCB[2*i] = TCB[2*i] & 0xd0; //set trigger flag
+ 159   4                                      else
+ 160   4                                              Timer_Flag = 1;                         //exist then set flag
+ 161   4                              }
+ 162   3                      }
+ 163   2              }
+ 164   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    217    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      9    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =      1    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

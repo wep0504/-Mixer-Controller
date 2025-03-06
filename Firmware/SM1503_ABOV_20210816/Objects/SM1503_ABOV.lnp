@@ -1,0 +1,5 @@
+".\Objects\STARTUP.obj",
+".\Objects\Main.obj",
+".\Objects\PIC_OS_8.obj" 
+TO ".\Objects\SM1503_ABOV" 
+PRINT(".\Listings\SM1503_ABOV.m51") RAMSIZE(256) 

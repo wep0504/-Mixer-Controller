@@ -1,0 +1,5 @@
+".\Objects\STARTUP.obj",
+".\Objects\Main.obj",
+".\Objects\PIC_OS_8.obj" 
+TO ".\Objects\HTY-21024-SM1503_V02_20210816" 
+PRINT(".\Listings\HTY-21024-SM1503_V02_20210816.m51") RAMSIZE(256) 
